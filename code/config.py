@@ -7,6 +7,9 @@ Authors: Jason Wei, Behnaz Abdollahi, Saeed Hassanpour
 
 import argparse
 from pathlib import Path
+from os import path
+
+main_folder = "/media/MassStorage/MindPeak/128_patchSize"
 
 import torch
 
@@ -28,7 +31,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--all_wsi",
     type=Path,
-    default=Path("all_wsi"),
+    default=Path("data"),
     help="Location of the WSI organized in subfolders by class")
 # For splitting into validation set.
 parser.add_argument("--val_wsi_per_class",
@@ -55,7 +58,7 @@ parser.add_argument(
 # Number of processes to use.
 parser.add_argument("--num_workers",
                     type=int,
-                    default=8,
+                    default=32,
                     help="Number of workers to use for IO")
 # Default shape for ResNet in PyTorch.
 parser.add_argument("--patch_size",
@@ -69,15 +72,15 @@ parser.add_argument("--patch_size",
 # The names of your to-be folders.
 parser.add_argument("--wsi_train",
                     type=Path,
-                    default=Path("wsi_train"),
+                    default=Path("train"),
                     help="Location to be created to store WSI for training")
 parser.add_argument("--wsi_val",
                     type=Path,
-                    default=Path("wsi_val"),
+                    default=Path("val"),
                     help="Location to be created to store WSI for validation")
 parser.add_argument("--wsi_test",
                     type=Path,
-                    default=Path("wsi_test"),
+                    default=Path("test"),
                     help="Location to be created to store WSI for testing")
 
 # Where the CSV file labels will go.
@@ -102,14 +105,14 @@ parser.add_argument("--labels_test",
 parser.add_argument(
     "--train_folder",
     type=Path,
-    default=Path("train_folder"),
+    default=Path(path.join(main_folder, "train_folder")),
     help="Location of the automatically built training input folder")
 
 # Folders of patches by WSI in training set, used for finding training accuracy at WSI level.
 parser.add_argument(
     "--patches_eval_train",
     type=Path,
-    default=Path("patches_eval_train"),
+    default=Path(path.join(main_folder, "patches_eval_train")),
     help=
     "Folders of patches by WSI in training set, used for finding training accuracy at WSI level"
 )
@@ -117,7 +120,7 @@ parser.add_argument(
 parser.add_argument(
     "--patches_eval_val",
     type=Path,
-    default=Path("patches_eval_val"),
+    default=Path(path.join(main_folder, "patches_eval_val")),
     help=
     "Folders of patches by WSI in validation set, used for finding validation accuracy at WSI level"
 )
@@ -125,7 +128,7 @@ parser.add_argument(
 parser.add_argument(
     "--patches_eval_test",
     type=Path,
-    default=Path("patches_eval_test"),
+    default=Path(path.join(main_folder, "patches_eval_test")),
     help=
     "Folders of patches by WSI in testing set, used for finding test accuracy at WSI level"
 )
@@ -133,14 +136,14 @@ parser.add_argument(
 # Target number of training patches per class.
 parser.add_argument("--num_train_per_class",
                     type=int,
-                    default=80000,
+                    default=15000,
                     help="Target number of training samples per class")
 
 # Only looks for purple images and filters whitespace.
 parser.add_argument(
     "--type_histopath",
     type=bool,
-    default=True,
+    default=False,
     help="Only look for purple histopathology images and filter whitespace")
 
 # Number of purple points for region to be considered purple.
@@ -175,7 +178,7 @@ parser.add_argument(
 
 parser.add_argument("--image_ext",
                     type=str,
-                    default="jpg",
+                    default="tif",
                     help="Image extension for saving patches")
 
 # Produce patches for testing and validation by folder.  The code only works
@@ -224,7 +227,7 @@ parser.add_argument(
 # Model hyperparameters.
 parser.add_argument("--num_epochs",
                     type=int,
-                    default=20,
+                    default=50,
                     help="Number of epochs for training")
 # Choose from [18, 34, 50, 101, 152].
 parser.add_argument(
@@ -239,7 +242,7 @@ parser.add_argument("--learning_rate",
                     help="Learning rate to use for gradient descent")
 parser.add_argument("--batch_size",
                     type=int,
-                    default=16,
+                    default=128,
                     help="Mini-batch size to use for training")
 parser.add_argument("--weight_decay",
                     type=float,
@@ -260,23 +263,23 @@ parser.add_argument("--save_interval",
 # Where models are saved.
 parser.add_argument("--checkpoints_folder",
                     type=Path,
-                    default=Path("checkpoints"),
+                    default=Path(path.join(main_folder, "checkpoints")),
                     help="Directory to save model checkpoints to")
 
 # Name of checkpoint file to load from.
 parser.add_argument(
     "--checkpoint_file",
     type=Path,
-    default=Path("xyz.pt"),
+    default=Path("checkpoint.pt"),
     help="Checkpoint file to load if resume_checkpoint_path is True")
 # ImageNet pretrain?
 parser.add_argument("--pretrain",
                     type=bool,
-                    default=False,
+                    default=True,
                     help="Use pretrained ResNet weights")
 parser.add_argument("--log_folder",
                     type=Path,
-                    default=Path("logs"),
+                    default=Path(path.join(main_folder, "logs")),
                     help="Directory to save logs to")
 
 ##########################################
@@ -293,19 +296,19 @@ parser.add_argument(
 parser.add_argument(
     "--preds_train",
     type=Path,
-    default=Path("preds_train"),
+    default=Path(path.join(main_folder, "preds_train")),
     help="Directory for outputting training prediction CSV files")
 # Where to put the validation prediction CSV files.
 parser.add_argument(
     "--preds_val",
     type=Path,
-    default=Path("preds_val"),
+    default=Path(path.join(main_folder, "preds_val")),
     help="Directory for outputting validation prediction CSV files")
 # Where to put the testing prediction CSV files.
 parser.add_argument(
     "--preds_test",
     type=Path,
-    default=Path("preds_test"),
+    default=Path(path.join(main_folder, "preds_test")),
     help="Directory for outputting testing prediction CSV files")
 
 ##########################################
@@ -315,19 +318,19 @@ parser.add_argument(
 parser.add_argument(
     "--inference_train",
     type=Path,
-    default=Path("inference_train"),
+    default=Path(path.join(main_folder,"inference_train")),
     help=
     "Folder for outputting WSI training predictions based on each threshold")
 parser.add_argument(
     "--inference_val",
     type=Path,
-    default=Path("inference_val"),
+    default=Path(path.join(main_folder,"inference_val")),
     help=
     "Folder for outputting WSI validation predictions based on each threshold")
 parser.add_argument(
     "--inference_test",
     type=Path,
-    default=Path("inference_test"),
+    default=Path(path.join(main_folder,"inference_test")),
     help="Folder for outputting WSI testing predictions based on each threshold"
 )
 
@@ -335,17 +338,17 @@ parser.add_argument(
 parser.add_argument(
     "--vis_train",
     type=Path,
-    default=Path("vis_train"),
+    default=Path(path.join(main_folder,"vis_train")),
     help="Folder for outputting the WSI training prediction visualizations")
 parser.add_argument(
     "--vis_val",
     type=Path,
-    default=Path("vis_val"),
+    default=Path(path.join(main_folder,"vis_val")),
     help="Folder for outputting the WSI validation prediction visualizations")
 parser.add_argument(
     "--vis_test",
     type=Path,
-    default=Path("vis_test"),
+    default=Path(path.join(main_folder,"vis_test")),
     help="Folder for outputting the WSI testing prediction visualizations")
 
 #######################################################
@@ -368,7 +371,7 @@ val_patches = args.train_folder.joinpath("val")
 path_mean, path_std = compute_stats(folderpath=args.all_wsi,
                                     image_ext=args.image_ext)
 
-# Only used is resume_checkpoint is True.
+# Only used is resume_  is True.
 resume_checkpoint_path = args.checkpoints_folder.joinpath(args.checkpoint_file)
 
 # Named with date and time.
