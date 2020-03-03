@@ -1,8 +1,9 @@
-#!/bin/(shell)
-python 1_split.py
-python 2_process_patches.py
-CUDA_VISIBLE_DEVICES=0 python 3_train.py
-CUDA_VISIBLE_DEVICES=0 python 4_test.py
-python 5_grid_search.py
-python 6_visualize.py
-python 7_final_test.py
+#!/usr/bin/bash
+source /voss/venv/code/bin/activate
+python /media/MassStorage/MindPeak/deepslide/code/1_split.py
+python /media/MassStorage/MindPeak/deepslide/code/2_process_patches.py
+CUDA_VISIBLE_DEVICES=0 python /media/MassStorage/MindPeak/deepslide/code/3_train.py
+CUDA_VISIBLE_DEVICES=0 python /media/MassStorage/MindPeak/deepslide/code/4_test.py
+python /media/MassStorage/MindPeak/deepslide/code/5_grid_search.py
+python /media/MassStorage/MindPeak/deepslide/code/6_visualize.py
+python /media/MassStorage/MindPeak/deepslide/code/7_final_test.py

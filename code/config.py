@@ -8,13 +8,13 @@ Authors: Jason Wei, Behnaz Abdollahi, Saeed Hassanpour
 import argparse
 from pathlib import Path
 from os import path
-
-main_folder = "/media/MassStorage/MindPeak/128_patchSize"
-
 import torch
 
 from compute_stats import compute_stats
 from utils import (get_classes, get_log_csv_name)
+
+main_folder = "/media/MassStorage/MindPeak/512_patchSize"
+data_folder = "/media/MassStorage/MindPeak/challenge"
 
 # Source: https://stackoverflow.com/questions/12151306/argparse-way-to-include-default-values-in-help
 parser = argparse.ArgumentParser(
@@ -31,7 +31,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--all_wsi",
     type=Path,
-    default=Path("data"),
+    default=Path(data_folder),
     help="Location of the WSI organized in subfolders by class")
 # For splitting into validation set.
 parser.add_argument("--val_wsi_per_class",
@@ -63,7 +63,7 @@ parser.add_argument("--num_workers",
 # Default shape for ResNet in PyTorch.
 parser.add_argument("--patch_size",
                     type=int,
-                    default=224,
+                    default=512,
                     help="Size of the patches extracted from the WSI")
 
 ##########################################
@@ -72,30 +72,31 @@ parser.add_argument("--patch_size",
 # The names of your to-be folders.
 parser.add_argument("--wsi_train",
                     type=Path,
-                    default=Path("train"),
+                    default=Path(path.join(main_folder, "train")),
                     help="Location to be created to store WSI for training")
 parser.add_argument("--wsi_val",
                     type=Path,
-                    default=Path("val"),
+                    default=Path(path.join(main_folder, "val")),
                     help="Location to be created to store WSI for validation")
 parser.add_argument("--wsi_test",
                     type=Path,
-                    default=Path("test"),
+                    default=Path(path.join(main_folder, "test")),
                     help="Location to be created to store WSI for testing")
 
 # Where the CSV file labels will go.
 parser.add_argument("--labels_train",
                     type=Path,
-                    default=Path("labels_train.csv"),
+                    default=Path(path.join(main_folder, "labels_train.csv")),
                     help="Location to store the CSV file labels for training")
-parser.add_argument(
-    "--labels_val",
-    type=Path,
-    default=Path("labels_val.csv"),
-    help="Location to store the CSV file labels for validation")
+
+parser.add_argument("--labels_val",
+                    type=Path,
+                    default=Path(path.join(main_folder, "labels_val.csv")),
+                    help="Location to store the CSV file labels for validation")
+
 parser.add_argument("--labels_test",
                     type=Path,
-                    default=Path("labels_test.csv"),
+                    default=Path(path.join(main_folder, "labels_test.csv")),
                     help="Location to store the CSV file labels for testing")
 
 ###############################################################
@@ -136,10 +137,11 @@ parser.add_argument(
 # Target number of training patches per class.
 parser.add_argument("--num_train_per_class",
                     type=int,
-                    default=15000,
+                    default=1000,
                     help="Target number of training samples per class")
 
 # Only looks for purple images and filters whitespace.
+# Faraz: I have turned this off as it is mean for WSI
 parser.add_argument(
     "--type_histopath",
     type=bool,
@@ -164,9 +166,10 @@ parser.add_argument(
 # For generating patches during the training phase, we slide a window to overlap by some factor.
 # Must be an integer. 1 means no overlap, 2 means overlap by 1/2, 3 means overlap by 1/3.
 # Recommend 2 for very high resolution, 3 for medium, and 5 not extremely high resolution images.
+# Faraz: I went with 1/5 overlap as the suggested values are for WSI
 parser.add_argument("--slide_overlap",
                     type=int,
-                    default=3,
+                    default=5,
                     help="Sliding window overlap factor for the testing phase")
 
 # Overlap factor to use when generating validation patches.
@@ -192,6 +195,7 @@ parser.add_argument(
 #########################################
 #               TRANSFORM               #
 #########################################
+# Faraz: It's definitely worth exploring spatial transforms as well.
 parser.add_argument(
     "--color_jitter_brightness",
     type=float,
@@ -225,11 +229,14 @@ parser.add_argument(
 #               TRAINING               #
 ########################################
 # Model hyperparameters.
+
+# of training epochs
 parser.add_argument("--num_epochs",
                     type=int,
                     default=50,
                     help="Number of epochs for training")
-# Choose from [18, 34, 50, 101, 152].
+
+# Depath of the network (layers). Choose from [18, 34, 50, 101, 152].
 parser.add_argument(
     "--num_layers",
     type=int,
@@ -242,7 +249,7 @@ parser.add_argument("--learning_rate",
                     help="Learning rate to use for gradient descent")
 parser.add_argument("--batch_size",
                     type=int,
-                    default=128,
+                    default=32,
                     help="Mini-batch size to use for training")
 parser.add_argument("--weight_decay",
                     type=float,

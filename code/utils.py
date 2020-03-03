@@ -43,6 +43,21 @@ def get_log_csv_name(log_folder: Path) -> Path:
                                f"_{now.hour}{now.minute}{now.second}.csv")
 
 
+def get_main_folder(base_folder: Path) -> Path:
+    """
+        Return a folder name based on the current time.
+
+        Args:
+            base_folder: base folder to be augmented by the time
+
+        Returns:
+            The path including with '_month_day_year_hour_minute_second' added at the end.
+        """
+    now = datetime.datetime.now()
+
+    return (f"{base_folder}_{now.month}{now.day}{now.year}_{now.hour}{now.minute}{now.second}")
+
+
 def get_image_names(folder: Path) -> List[Path]:
     """
     Find the names and paths of all of the images in a folder.

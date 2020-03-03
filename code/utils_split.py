@@ -72,7 +72,7 @@ def split(keep_orig_copy: bool, wsi_train: Path, wsi_val: Path, wsi_test: Path,
             Returns:
                 Path with top directory removed.
             """
-            return Path(*filepath.parts[1:])
+            return Path(*filepath.parts[-2:])
 
         img_to_label = {}
         for image_file in image_files:
